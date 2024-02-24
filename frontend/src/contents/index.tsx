@@ -12,7 +12,8 @@ const tooltipPlaygroundTitle = <span style={{ color: '#777' }}>Playground</span>
 const tooltipDeleteTitle = <span style={{ color: '#777' }}>Delete</span>;
 const tooltipShowTitle = <span style={{ color: '#777' }}>Show</span>
 const tooltipHideTitle = <span style={{ color: '#777' }}>Hide</span>
-const tooltipRecordTitle = <span style={{ color: '#777' }}>Record</span>
+const tooltipRecordTitle = <span style={{ color: '#777' }}>Records</span>
+const tooltipChunkTitle = <span style={{ color: '#777' }}>Chunks</span>
 const statusReverse = {
     creating: 'orange',
     ready: 'green',
@@ -93,18 +94,59 @@ const modelsTableColumn: any = [
         width: 360,
         render: (proerties: object) => (
             <div style={{ display: 'flex' }}>
-
-                {proerties && typeof proerties === 'object' && Object.entries(proerties).map(([key, property]) => (
-                    <div className='streamParent' key={key} style={{ display: 'flex', border: '1px solid #e4e4e4', borderRadius: '8px', width: 'auto', padding: '0 4px', marginRight: '12px' }}>
-                        <span className='stream' style={{ borderRight: '1px solid #e4e4e4', paddingRight: '2px' }}>{key}</span>
-                        <span className='on' style={{ paddingLeft: '2px' }}>{String(property)}</span>
-                    </div>
-                )).slice(0, 2)}
-                {proerties && typeof proerties === 'object' && Object.entries(proerties).length > 2 && (
-                    <div className='streamParent' style={{ border: '1px solid #e4e4e4', borderRadius: '8px', width: 'auto', padding: '0 4px' }}>
-                        <span className='stream' style={{ paddingRight: '2px' }}>+{Object.entries(proerties).length - 2}</span>
-                    </div>
-                )}
+                {
+                    proerties &&
+                    typeof proerties === "object" &&
+                    Object.entries(proerties)
+                        .filter(([_key, property]) => property !== null)
+                        .map(([key, property]) => (
+                            <div
+                                className="streamParent"
+                                key={key}
+                                style={{
+                                    display: "flex",
+                                    border: "1px solid #e4e4e4",
+                                    borderRadius: "8px",
+                                    width: "auto",
+                                    padding: "0 4px",
+                                    marginRight: "12px",
+                                }}
+                            >
+                                <span
+                                    className="stream"
+                                    style={{ borderRight: "1px solid #e4e4e4", paddingRight: "2px" }}
+                                >
+                                    {key}
+                                </span>
+                                <span className="on" style={{ paddingLeft: "2px" }}>
+                                    {String(property)}
+                                </span>
+                            </div>
+                        ))
+                        .slice(0, 2)
+                }
+                {
+                    proerties &&
+                    typeof proerties === "object" &&
+                    Object.entries(proerties).filter(([_key, property]) => property !== null)
+                        .length > 2 && (
+                        <div
+                            className="streamParent"
+                            style={{
+                                border: "1px solid #e4e4e4",
+                                borderRadius: "8px",
+                                width: "auto",
+                                padding: "0 4px",
+                            }}
+                        >
+                            <span className="stream" style={{ paddingRight: "2px" }}>
+                                +
+                                {Object.entries(proerties).filter(([_key, property]) => property !== null)
+                                    .length - 2}
+                            </span>
+                        </div>
+                    )
+                }
             </div>
         ),
     },
@@ -361,4 +403,4 @@ const assistantTableColumn: any = [
     },
 ]
 
-export { collectionTableColumn, assistantTableColumn, apikeysTableColumn, actionsTableColumn, tooltipEditTitle,tooltipRecordTitle, tooltipDeleteTitle, tooltipPlaygroundTitle, tooltipShowTitle, tooltipHideTitle, modelsTableColumn };
+export { collectionTableColumn, tooltipChunkTitle, assistantTableColumn, apikeysTableColumn, actionsTableColumn, tooltipEditTitle, tooltipRecordTitle, tooltipDeleteTitle, tooltipPlaygroundTitle, tooltipShowTitle, tooltipHideTitle, modelsTableColumn };

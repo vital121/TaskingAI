@@ -107,11 +107,20 @@ async def create_model(
     model_schema_id: str,
     name: str,
     credentials: Dict,
+    properties: Optional[Dict],
 ):
     # verify model schema exists
     model_schema: ModelSchema = get_model_schema(model_schema_id)
     if not model_schema:
-        raise_http_error(ErrorCode.OBJECT_NOT_FOUND, message=f"Model schema {model_schema_id} not found.")
+        raise_http_error(
+            ErrorCode.OBJECT_NOT_FOUND,
+            message=f"Model schema {model_schema_id} not found.",
+        )
+    if model_schema.properties is None and properties is not None:
+        raise_http_error(
+            ErrorCode.REQUEST_VALIDATION_ERROR,
+            message="Properties are not allowed for this model schema.",
+        )
 
     # get provider
     provider: Provider = get_provider(model_schema.provider_id)
@@ -122,9 +131,12 @@ async def create_model(
         provider_model_id=model_schema.provider_model_id,
         model_type=model_schema.type.value,
         credentials=credentials,
+        properties=properties,
     )
     check_http_error(response)
-    encrypted_credentials = response.json()["data"]
+    data = response.json()["data"]
+    encrypted_credentials = data["encrypted_credentials"]
+    properties = data["properties"]
     display_credentials = _build_display_credentials(
         original_credentials=credentials,
         credential_schema=provider.credentials_schema,
@@ -138,11 +150,17 @@ async def create_model(
         type=model_schema.type,
         encrypted_credentials=encrypted_credentials,
         display_credentials=display_credentials,
+        properties=properties,
     )
     return model
 
 
-async def update_model(model_id: str, name: Optional[str], credentials: Optional[Dict]):
+async def update_model(
+    model_id: str,
+    name: Optional[str],
+    credentials: Optional[Dict],
+    properties: Optional[Dict],
+):
     model: Model = await validate_and_get_model(model_id)
     update_dict = {}
 
@@ -150,7 +168,6 @@ async def update_model(model_id: str, name: Optional[str], credentials: Optional
         update_dict["name"] = name
 
     if credentials is not None:
-
         # verify model credentials
         model_schema = model.model_schema()
         response = await verify_credentials(
@@ -158,9 +175,12 @@ async def update_model(model_id: str, name: Optional[str], credentials: Optional
             provider_model_id=model_schema.provider_model_id,
             model_type=model_schema.type.value,
             credentials=credentials,
+            properties=properties,
         )
         check_http_error(response)
-        encrypted_credentials = response.json()["data"]
+        data = response.json()["data"]
+        encrypted_credentials = data["encrypted_credentials"]
+        properties = data["properties"]
 
         # get provider
         provider: Provider = get_provider(model_schema.provider_id)
@@ -173,6 +193,7 @@ async def update_model(model_id: str, name: Optional[str], credentials: Optional
 
         update_dict["encrypted_credentials"] = encrypted_credentials
         update_dict["display_credentials"] = display_credentials
+        update_dict["properties"] = properties
 
     model = await db_model.update_model(
         model=model,
